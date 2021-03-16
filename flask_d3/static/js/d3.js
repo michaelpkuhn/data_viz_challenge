@@ -10,6 +10,7 @@ function drawChart(container, data){
     const format = d3.format(",d");
     let height = 924
     let width = 954
+    // formats current tree path
     const name = d => d.ancestors().reverse().map(d=>d.data.name).join("/")
 
     function tile(node, x0, y0, x1, y1) {
@@ -30,14 +31,13 @@ function drawChart(container, data){
     const x = d3.scaleLinear().rangeRound([0, width]);
     const y = d3.scaleLinear().rangeRound([0, height]);
     
-    var color_int = 0
+    // Assigns color based on uid, which is ordered
+    // primary, flag-red, gray-light, flag-blue
     const color_list = ["#0071bc","#E4002B","#aeb0b5", "#41B6E6"]
-    const pickColor = () => {
-        color_int = color_int <= color_list.length-2 ? color_int+1 : 0;
-        // color_int = Math.floor(Math.random()*3)
-        console.log(color_int)
-        // return color_list[color_int]
-        return "#ccc"
+    const pickColor = (uid) => {
+        uid_int = uid.split(" ")[0]
+        color_int = uid_int % color_list.length
+        return color_list[color_int]
     }
 
     const svg = d3.select(container)
@@ -67,12 +67,14 @@ function drawChart(container, data){
   
       node.append("rect")
           .attr("id", d => (d.leafUid = uid_index() + " leaf"))
-          .attr("fill", d => d === root ? "#fff" : d.children ? pickColor() : "#ddd")
+          // root is the current path/back button element
+          .attr("fill", d => d === root ? "#fff" : pickColor(d.leafUid))
           .attr("stroke", "#fff");
   
       node.append("text")
         .attr("font-weight", d => d === root ? "bold" : null)
         .selectAll("tspan")
+        // formats text
         .data(d => (d === root ? name(d) : d.data.name).split(/(?=[A-z][^A-z /])/g)
                                                         .concat(d.data.level)
                                                         .concat(format(d.value)))
